@@ -58,8 +58,39 @@ command.
 static SPA with no backend, so any static host works. Configure the host to
 rewrite unknown paths to `index.html` (the app uses `BrowserRouter`).
 
+**4. A single-page bundle for hosts you don't control:**
+
+```bash
+npm run build:artifact    # -> dist-artifact/publish/
+```
+
+This produces a 1.2 KB page plus `app.css`, `app.js` and the woff2 files, all
+referenced by relative path. It targets hosts that serve the page from an
+arbitrary URL with no SPA rewrite and no control over the document head — a
+Claude Artifact, a preview service, an iframe embed. `vite.config.ts` switches
+three things in this mode and leaves the normal build untouched:
+
+| Change | Why |
+|---|---|
+| relative `base`, dynamic imports inlined | nothing depends on how the page's URL resolves |
+| `HashRouter` instead of `BrowserRouter` | deep links can't be rewritten to `index.html`, so `#/page/:id` survives a reload |
+| no service worker | Workbox's precache manifest is path-absolute |
+
+`scripts/build-artifact.mjs` then assembles the bundle. It also collapses the
+font stylesheet: the generated `fonts.css` has one `@font-face` per requested
+weight, but Fraunces, Inter and Caveat are variable fonts and several blocks
+point at the *same* file, so blocks sharing a file become one block carrying
+the full weight range — which is what a variable font wants anyway, since the
+browser then interpolates instead of snapping to fixed instances.
+
+Two things do not work in a sandboxed preview, by the host's design rather than
+the app's: **PNG/PDF export**, because the sandbox makes page-initiated
+downloads inert, and **install / offline**, because there's no service worker
+in this build. Everything else behaves.
+
 Whichever route you take, remember the data is per-origin: pages written at
-`localhost` are not the same database as pages written at a tunnel URL.
+`localhost` are not the same database as pages written at a tunnel URL, or in a
+hosted preview.
 
 
 On first launch the app seeds a sample journal with three pages so the editor

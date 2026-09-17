@@ -3,10 +3,26 @@ import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 import path from 'node:path'
 
-export default defineConfig({
+/**
+ * `--mode artifact` builds a single self-contained page for hosted previews
+ * (e.g. a Claude Artifact), where the app is served from an unknown path with
+ * no SPA rewrite and no control over the document head:
+ *
+ *  - relative asset base, and dynamic imports inlined, so nothing depends on
+ *    the page's URL resolving a particular way
+ *  - no service worker: its precache manifest is path-absolute
+ *  - hash routing, because deep links can't be rewritten to index.html
+ *
+ * The normal build is untouched.
+ */
+export default defineConfig(({ mode }) => {
+  const artifact = mode === 'artifact'
+
+  return {
+  base: artifact ? './' : '/',
   plugins: [
     react(),
-    VitePWA({
+    ...(artifact ? [] : [VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.svg', 'fonts/*.woff2', 'fonts/fonts.css'],
       manifest: {
@@ -32,7 +48,7 @@ export default defineConfig({
         cleanupOutdatedCaches: true,
       },
       devOptions: { enabled: false },
-    }),
+    })]),
   ],
   resolve: {
     alias: {
@@ -45,13 +61,21 @@ export default defineConfig({
   },
   build: {
     target: 'es2022',
+    outDir: artifact ? 'dist-artifact' : 'dist',
+    // One CSS file and one JS file: the assembler inlines both, and a
+    // code-split chunk can't be inlined into a single document.
+    cssCodeSplit: !artifact,
+    assetsInlineLimit: artifact ? 0 : 4096,
     rollupOptions: {
-      output: {
-        manualChunks: {
-          konva: ['konva', 'react-konva'],
-          pdf: ['jspdf'],
-        },
-      },
+      output: artifact
+        ? { inlineDynamicImports: true }
+        : {
+            manualChunks: {
+              konva: ['konva', 'react-konva'],
+              pdf: ['jspdf'],
+            },
+          },
     },
   },
+  }
 })
