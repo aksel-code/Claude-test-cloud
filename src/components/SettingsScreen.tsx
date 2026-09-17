@@ -9,7 +9,8 @@ import { toast } from './ui/Toast'
 import { storageReport, wipeAll, type StorageReport } from '@/lib/db'
 import { formatBytes, releaseObjectUrls } from '@/lib/image'
 import {
-  biometricAvailable, clearLock, enrolBiometric, getLockConfig, removeBiometric, setPasscode,
+  biometricAvailable, clearLock, enrolBiometric, getLockConfig, lockAvailable,
+  removeBiometric, setPasscode,
 } from '@/lib/lock'
 import { prefersReducedMotion } from '@/lib/motion'
 import type { ThemeSetting } from '@/lib/types'
@@ -26,6 +27,8 @@ export default function SettingsScreen() {
   const [hasBiometric, setHasBiometric] = useState(false)
   const [biometricPossible, setBiometricPossible] = useState(false)
   const [confirmWipe, setConfirmWipe] = useState(false)
+  const secure = lockAvailable()
+  const origin = typeof window !== 'undefined' ? window.location.origin : ''
 
   const refreshLock = useCallback(async () => {
     const config = await getLockConfig()
@@ -122,15 +125,32 @@ export default function SettingsScreen() {
           <div className="flex-1">
             <p className="font-medium text-ink">App lock</p>
             <p className="text-sm text-ink-soft mt-0.5 leading-snug">
-              {hasLock
-                ? `On${hasBiometric ? ', with biometrics' : ''}. Asked for when you open the app.`
-                : 'Off. Anyone who opens the app can read your journals.'}
+              {!secure
+                ? 'Unavailable over an insecure connection.'
+                : hasLock
+                  ? `On${hasBiometric ? ', with biometrics' : ''}. Asked for when you open the app.`
+                  : 'Off. Anyone who opens the app can read your journals.'}
             </p>
           </div>
-          <button type="button" className="btn-outline shrink-0" onClick={() => setLockSheet(true)}>
+          <button
+            type="button"
+            className="btn-outline shrink-0"
+            onClick={() => setLockSheet(true)}
+            disabled={!secure}
+          >
             {hasLock ? 'Change' : 'Set up'}
           </button>
         </div>
+
+        {!secure && (
+          <p className="text-sm text-ink-soft leading-relaxed rounded-xl bg-sunk p-3.5 mt-1">
+            Browsers only expose the cryptography this needs over a secure
+            connection. You&rsquo;re on <code className="text-ink">{origin}</code>. Open
+            Pagebound over <strong className="text-ink">https</strong>, or at{' '}
+            <strong className="text-ink">http://localhost</strong>, and the lock
+            becomes available. Everything else on this page works as normal.
+          </p>
+        )}
 
         <div className="rounded-xl bg-sunk p-4 mt-2 text-sm text-ink-soft leading-relaxed">
           <p className="font-medium text-ink mb-1.5 flex items-center gap-2">
@@ -270,6 +290,19 @@ function LockSheet({
         </div>
       }
     >
+      <form onSubmit={(event) => { event.preventDefault(); void save() }}>
+      {/* A hidden username gives password managers something to attach the
+          passcode to; without it Chrome declines to offer to save it. */}
+      <input
+        type="text"
+        name="username"
+        value="Pagebound"
+        autoComplete="username"
+        readOnly
+        hidden
+        aria-hidden="true"
+        tabIndex={-1}
+      />
       <div className="rounded-xl bg-mustard/15 border border-mustard/40 p-3.5 mb-5 text-sm text-ink leading-relaxed">
         <strong className="block mb-1">There is no way to reset this.</strong>
         If you forget the passcode, the only way back in is to clear the app&rsquo;s data,
@@ -299,6 +332,8 @@ function LockSheet({
       </Field>
 
       {error && <p role="alert" className="text-sm text-terracotta-deep -mt-2 mb-4">{error}</p>}
+      <button type="submit" hidden aria-hidden="true" tabIndex={-1} />
+      </form>
 
       {biometricPossible && (
         <div className="border-t border-rule pt-4 mt-2">

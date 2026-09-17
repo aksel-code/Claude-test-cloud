@@ -23,6 +23,45 @@ npm run typecheck
 
 Node 20.19+ or 22.12+. No API keys, no backend, no environment variables.
 
+### Checking it on a phone
+
+Pagebound is a PWA, so it's worth looking at on a real device. Three routes,
+in increasing order of fidelity:
+
+**1. Same Wi-Fi, over HTTP** — quickest, but degraded:
+
+```bash
+npm run dev:host          # binds 0.0.0.0 and prints a Network: URL
+```
+
+Open the printed `http://192.168.x.x:5173` on the phone.
+
+> **What won't work this way.** `http://<LAN-IP>` is not a *secure context*, so
+> the browser withholds `crypto.subtle`, service workers and WebAuthn. That
+> means **no app lock, no biometrics, no install prompt and no offline mode**.
+> Everything else — the editor, photos, export, reading mode — works normally,
+> and Settings tells you why the lock is unavailable rather than failing at you.
+
+**2. A tunnel** — full fidelity, one command, no deploy:
+
+```bash
+npm run build && npm run preview     # in one terminal
+npx cloudflared tunnel --url http://localhost:4173   # in another
+```
+
+You get an `https://…trycloudflare.com` URL. Secure context, so the lock,
+install prompt and offline mode all behave exactly as they will in production.
+Note this publishes your dev server to the public internet for the life of the
+command.
+
+**3. Deploy the static build** — best for repeat testing. `dist/` is a plain
+static SPA with no backend, so any static host works. Configure the host to
+rewrite unknown paths to `index.html` (the app uses `BrowserRouter`).
+
+Whichever route you take, remember the data is per-origin: pages written at
+`localhost` are not the same database as pages written at a tunnel URL.
+
+
 On first launch the app seeds a sample journal with three pages so the editor
 has something to show. It only ever seeds an empty database.
 
@@ -285,6 +324,9 @@ permanently. Export what you'd be sad to lose.
   would mean licensing questions and a megabyte of assets.
 - **Haptics are Android-only** in practice; iOS Safari has never shipped the
   Vibration API.
+- **The lock, install prompt and offline mode need a secure context** (https or
+  localhost). Over a plain-HTTP LAN address the browser withholds the APIs they
+  depend on; the app detects this and says so instead of breaking.
 - **Biometric unlock** proves "whoever holds this device can satisfy its
   authenticator", not an identity — there's no server to verify against. That's
   the right amount of assurance for a local screen lock, and no more.

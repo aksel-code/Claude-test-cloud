@@ -21,6 +21,20 @@ import type { LockConfig } from './types'
 
 const PBKDF2_ITERATIONS = 250_000
 
+/**
+ * SubtleCrypto is gated to secure contexts, so `crypto.subtle` is *undefined*
+ * over plain HTTP on a LAN address — which is exactly how someone tests a PWA
+ * on their phone (`vite --host`, then http://192.168.x.x:5173). Without this
+ * guard, setting a passcode throws a TypeError and the UI hangs on "busy".
+ *
+ * http://localhost and https:// are both secure contexts, so this only bites
+ * on the LAN-IP path, and the fix is a tunnel or a static deploy rather than
+ * anything in the app. Settings explains that rather than hiding the feature.
+ */
+export function lockAvailable(): boolean {
+  return typeof crypto !== 'undefined' && typeof crypto.subtle !== 'undefined'
+}
+
 function toBase64(bytes: ArrayBuffer): string {
   return btoa(String.fromCharCode(...new Uint8Array(bytes)))
 }
@@ -30,6 +44,12 @@ function fromBase64(text: string): Uint8Array {
 }
 
 async function derive(passcode: string, salt: Uint8Array): Promise<string> {
+  if (!lockAvailable()) {
+    throw new Error(
+      'The app lock needs a secure connection. Open Pagebound over https, or at '
+      + 'http://localhost, and try again.',
+    )
+  }
   const key = await crypto.subtle.importKey(
     'raw',
     new TextEncoder().encode(passcode),
@@ -70,6 +90,8 @@ export async function setPasscode(passcode: string): Promise<void> {
 export async function verifyPasscode(passcode: string): Promise<boolean> {
   const config = await getLockConfig()
   if (!config.passcodeHash || !config.salt) return true
+  // Fail closed: if the passcode can't be checked, it isn't satisfied.
+  if (!lockAvailable()) return false
   const hash = await derive(passcode, fromBase64(config.salt))
   return timingSafeEqual(hash, config.passcodeHash)
 }

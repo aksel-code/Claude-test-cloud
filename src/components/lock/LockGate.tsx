@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
 import { Icon } from '../ui/Icon'
-import { isLockEnabled, verifyBiometric, verifyPasscode, getLockConfig } from '@/lib/lock'
+import {
+  getLockConfig, isLockEnabled, lockAvailable, verifyBiometric, verifyPasscode,
+} from '@/lib/lock'
 
 /**
  * Gates the whole app behind a passcode when one is set.
@@ -118,6 +120,16 @@ function LockScreen({ onUnlock }: { onUnlock: () => void }) {
         <p className="text-ink-soft text-sm mb-7">Enter your passcode to open your journals.</p>
 
         <form onSubmit={submit}>
+          <input
+            type="text"
+            name="username"
+            value="Pagebound"
+            autoComplete="username"
+            readOnly
+            hidden
+            aria-hidden="true"
+            tabIndex={-1}
+          />
           <label htmlFor="passcode" className="sr-only">Passcode</label>
           <input
             ref={input}
@@ -159,6 +171,14 @@ function LockScreen({ onUnlock }: { onUnlock: () => void }) {
             <Icon name="fingerprint" size={19} />
             Use biometrics
           </button>
+        )}
+
+        {!lockAvailable() && (
+          <p role="alert" className="text-sm text-terracotta-deep mt-6 leading-relaxed">
+            This page is served over an insecure connection, so the browser
+            won&rsquo;t let Pagebound check your passcode. Open it over https, or
+            at http://localhost, to get back in. Your pages are untouched.
+          </p>
         )}
 
         <p className="text-xs text-ink-faint mt-8 leading-relaxed">

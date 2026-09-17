@@ -1,4 +1,5 @@
-@import '/fonts/fonts.css';
+/* Font faces are linked from index.html, not @imported: an @import here
+   would chain the two stylesheet requests instead of parallelising them. */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
