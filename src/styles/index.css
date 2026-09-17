@@ -1,0 +1,178 @@
+@import '/fonts/fonts.css';
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+ * Palette note (accessibility):
+ * The six brand colours are a *content* palette — they colour stickers, tape,
+ * covers and charts. Small UI text never sits on sage / dusty / mustard, because
+ * those land around 2.5:1 on cream. Interactive surfaces that carry white text
+ * use the `-deep` variants, which were picked to clear 4.5:1.
+ */
+:root {
+  --pb-page: 250 246 238;          /* #FAF6EE cream            */
+  --pb-surface: 255 253 248;       /* raised paper             */
+  --pb-raised: 255 255 255;
+  --pb-sunk: 242 236 225;
+  --pb-ink: 43 42 40;              /* #2B2A28   ~15.4:1 on cream */
+  --pb-ink-soft: 90 84 76;         /*            ~7.2:1 on cream */
+  --pb-ink-faint: 124 116 105;     /*            ~4.6:1 on cream */
+  --pb-rule: 226 217 202;
+
+  --pb-terracotta: 200 103 74;     /* #C8674A  accent / large text only */
+  --pb-terracotta-deep: 164 76 50; /*          5.7:1 behind white       */
+  --pb-sage: 143 165 138;          /* #8FA58A */
+  --pb-sage-deep: 90 114 87;       /*          5.4:1 behind white       */
+  --pb-dusty: 125 152 179;         /* #7D98B3 */
+  --pb-dusty-deep: 74 105 134;     /*          5.3:1 behind white       */
+  --pb-mustard: 217 164 65;        /* #D9A441 */
+  --pb-mustard-deep: 140 100 20;   /*          5.2:1 behind white       */
+
+  --pb-grain-opacity: 0.55;
+  --pb-canvas-backdrop: 232 225 212;
+  color-scheme: light;
+}
+
+/* "Night desk": warm lamp tones over charcoal, never pure black. */
+[data-theme='dark'] {
+  --pb-page: 27 24 20;             /* warm charcoal  */
+  --pb-surface: 35 32 25;
+  --pb-raised: 43 39 33;
+  --pb-sunk: 22 20 16;
+  --pb-ink: 242 234 218;           /* ~14.8:1 */
+  --pb-ink-soft: 182 171 152;      /* ~7.8:1  */
+  --pb-ink-faint: 142 132 116;     /* ~4.7:1  */
+  --pb-rule: 64 58 48;
+
+  --pb-terracotta: 224 138 105;    /* lifted for dark ground, 6.7:1 */
+  --pb-terracotta-deep: 200 103 74;
+  --pb-sage: 165 188 159;
+  --pb-sage-deep: 143 165 138;
+  --pb-dusty: 152 179 205;
+  --pb-dusty-deep: 125 152 179;
+  --pb-mustard: 232 190 110;
+  --pb-mustard-deep: 217 164 65;
+
+  --pb-grain-opacity: 0.30;
+  --pb-canvas-backdrop: 18 16 13;
+  color-scheme: dark;
+}
+
+@layer base {
+  * { -webkit-tap-highlight-color: transparent; }
+
+  html { -webkit-text-size-adjust: 100%; }
+
+  body {
+    @apply bg-page text-ink font-sans antialiased;
+    /* Prevent rubber-band scroll fighting the canvas on iOS. */
+    overscroll-behavior-y: none;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* One visible, high-contrast focus ring everywhere. */
+  :focus-visible {
+    outline: 2px solid rgb(var(--pb-terracotta-deep));
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+  [data-theme='dark'] :focus-visible { outline-color: rgb(var(--pb-terracotta)); }
+
+  ::selection { background: rgb(var(--pb-mustard) / 0.35); }
+
+  h1, h2, h3 { @apply font-display; font-optical-sizing: auto; }
+
+  input, textarea, select, button { font: inherit; color: inherit; }
+
+  /* Konva injects a div wrapper; make sure it never introduces scrollbars. */
+  .konvajs-content { display: block !important; }
+}
+
+@layer components {
+  /* Every tappable thing clears 44px, even when it looks smaller. */
+  .tap {
+    @apply relative inline-flex items-center justify-center;
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  .card {
+    @apply bg-surface border border-rule rounded-xl shadow-paper;
+  }
+
+  .btn {
+    @apply tap gap-2 px-4 rounded-full font-medium text-sm
+           transition-[transform,background-color,box-shadow] duration-150 ease-settle
+           active:scale-[0.97] disabled:opacity-45 disabled:pointer-events-none;
+  }
+  .btn-primary { @apply btn bg-terracotta-deep text-white shadow-paper hover:shadow-lift; }
+  .btn-quiet   { @apply btn bg-sunk text-ink hover:bg-rule/60; }
+  .btn-ghost   { @apply btn text-ink-soft hover:bg-sunk hover:text-ink; }
+  .btn-outline { @apply btn border border-rule bg-surface text-ink hover:border-ink-faint; }
+
+  .field {
+    @apply w-full min-h-[44px] px-3 py-2 bg-surface border border-rule rounded-lg
+           text-ink placeholder:text-ink-faint
+           focus:border-terracotta-deep focus:outline-none
+           focus:ring-2 focus:ring-terracotta-deep/25;
+  }
+
+  .label { @apply block text-xs font-semibold uppercase tracking-[0.08em] text-ink-faint mb-1.5; }
+
+  /* Paper grain. Baked feTurbulence — cheap, tiles forever, no image request. */
+  .grain::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: var(--pb-grain-opacity);
+    mix-blend-mode: multiply;
+    background-image: var(--pb-grain-url);
+    background-size: 180px 180px;
+  }
+  [data-theme='dark'] .grain::after { mix-blend-mode: soft-light; opacity: 0.5; }
+
+  .hairline { @apply border-b border-rule; }
+
+  /* Scrollbars that don't shout. */
+  .thin-scroll { scrollbar-width: thin; scrollbar-color: rgb(var(--pb-rule)) transparent; }
+  .thin-scroll::-webkit-scrollbar { height: 8px; width: 8px; }
+  .thin-scroll::-webkit-scrollbar-thumb { background: rgb(var(--pb-rule)); border-radius: 99px; }
+  .thin-scroll::-webkit-scrollbar-track { background: transparent; }
+
+  .no-scrollbar { scrollbar-width: none; }
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+
+  /* Screen-reader-only, but focusable (skip links). */
+  .sr-only-focusable:not(:focus):not(:focus-within) {
+    position: absolute; width: 1px; height: 1px;
+    padding: 0; margin: -1px; overflow: hidden;
+    clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+  }
+}
+
+@layer utilities {
+  .drag-none { -webkit-user-drag: none; user-select: none; }
+  .touch-none { touch-action: none; }
+  .safe-b { padding-bottom: env(safe-area-inset-bottom, 0px); }
+  .safe-t { padding-top: env(safe-area-inset-top, 0px); }
+}
+
+/*
+ * Reduced motion: kill transforms and durations, keep opacity so state changes
+ * are still perceivable. Konva tweens check this flag separately (see motion.ts).
+ */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Baked paper-grain noise. Defined last so the data URI stays readable. */
+:root {
+  --pb-grain-url: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)' opacity='0.42'/%3E%3C/svg%3E");
+}
