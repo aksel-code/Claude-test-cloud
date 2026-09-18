@@ -5,6 +5,7 @@ import { getAllPages } from '@/lib/db'
 import { MOODS, getMood, moodChartColor } from '@/content/moods'
 import { Icon } from '../ui/Icon'
 import { Segmented, EmptyState } from '../ui/Controls'
+import { ScreenHeader } from '../ui/ScreenHeader'
 import { addDays, formatShort, formatLong, todayKey } from '@/lib/date'
 import type { MoodId, Page } from '@/lib/types'
 
@@ -72,12 +73,14 @@ export default function MoodsScreen() {
 
   return (
     <div className="max-w-3xl mx-auto px-4 sm:px-6 pt-6 md:pt-10">
-      <h1 className="font-display text-3xl text-ink mb-1">Moods</h1>
-      <p className="text-ink-soft mb-6">
-        {total > 0
+      <ScreenHeader
+        eyebrow="PAGEBOUND — MOODS"
+        title="Moods"
+        subtitle={total > 0
           ? `${total} ${total === 1 ? 'day' : 'days'} recorded in the last ${days}.`
           : 'Nothing recorded in this stretch.'}
-      </p>
+        meta={`${days}D WINDOW`}
+      />
 
       {/* Controls sit in one row above the chart. */}
       <div className="flex flex-wrap items-center gap-2 mb-5">

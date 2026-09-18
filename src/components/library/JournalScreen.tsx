@@ -59,7 +59,12 @@ export function JournalScreen() {
         <JournalCover journal={journal} width={132} />
 
         <div className="flex-1 min-w-0 sm:pt-2">
-          <h1 className="font-display text-3xl text-ink leading-tight text-balance">{journal.title}</h1>
+          <p className="tech-label text-signal-deep dark:text-signal mb-1.5">
+            JOURNAL &middot; {pages.length.toString().padStart(2, '0')} {pages.length === 1 ? 'PAGE' : 'PAGES'}
+          </p>
+          <h1 className="font-display text-3xl text-ink leading-tight text-balance animate-glitch-in">
+            {journal.title}
+          </h1>
           <p className="text-ink-soft mt-1.5">
             {pages.length} {pages.length === 1 ? 'page' : 'pages'}
             {pages.length > 0 && <> &middot; last written {formatRelative(pages[0].date)}</>}

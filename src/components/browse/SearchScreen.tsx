@@ -1,12 +1,15 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { motion, AnimatePresence } from 'motion/react'
 import { allTags, searchPages, type SearchHit } from '@/store/library'
 import { useLibrary } from '@/store/library'
 import { useAsync, useDebounced } from '@/hooks'
 import { Icon } from '../ui/Icon'
 import { EmptyState } from '../ui/Controls'
+import { ScreenHeader } from '../ui/ScreenHeader'
 import { PagePreview } from '../library/PagePreview'
 import { formatRelative } from '@/lib/date'
+import { prefersReducedMotion } from '@/lib/motion'
 
 export default function SearchScreen() {
   const journals = useLibrary((s) => s.journals)
@@ -47,7 +50,7 @@ export default function SearchScreen() {
 
   return (
     <div className="max-w-3xl mx-auto px-4 sm:px-6 pt-6 md:pt-10">
-      <h1 className="font-display text-3xl text-ink mb-5">Search</h1>
+      <ScreenHeader eyebrow="PAGEBOUND — SEARCH" title="Search" />
 
       <div className="relative mb-3">
         <Icon name="search" size={19} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-faint" />
@@ -119,32 +122,41 @@ export default function SearchScreen() {
                     {journalTitle}
                   </h2>
                   <ul className="space-y-2.5">
-                    {journalHits.map((hit) => (
-                      <li key={hit.page.id}>
-                        <Link
-                          to={`/page/${hit.page.id}`}
-                          className="flex gap-3.5 p-2.5 rounded-xl border border-rule bg-surface
-                            hover:shadow-paper hover:border-ink-faint transition-all"
+                    <AnimatePresence initial={!prefersReducedMotion()}>
+                      {journalHits.map((hit, index) => (
+                        <motion.li
+                          key={hit.page.id}
+                          layout
+                          initial={{ opacity: 0, y: 8 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0 }}
+                          transition={{ duration: 0.24, delay: Math.min(index, 6) * 0.03, ease: [0.2, 0.8, 0.3, 1] }}
                         >
-                          <PagePreview
-                            page={hit.page}
-                            className="w-14 shrink-0 rounded-md border border-rule"
-                          />
-                          <div className="min-w-0 flex-1 py-0.5">
-                            <p className="text-sm font-medium text-ink truncate">
-                              {hit.page.title || formatRelative(hit.page.date)}
-                            </p>
-                            <p className="text-sm text-ink-soft line-clamp-2 mt-0.5 leading-snug">
-                              <Highlight text={hit.snippet} query={query} />
-                            </p>
-                            <p className="text-xs text-ink-faint mt-1">
-                              {formatRelative(hit.page.date)}
-                              {hit.page.tags.length > 0 && <> &middot; #{hit.page.tags.join(' #')}</>}
-                            </p>
-                          </div>
-                        </Link>
-                      </li>
-                    ))}
+                          <Link
+                            to={`/page/${hit.page.id}`}
+                            className="flex gap-3.5 p-2.5 rounded-xl border border-rule bg-surface
+                              hover:shadow-paper hover:border-ink-faint transition-all"
+                          >
+                            <PagePreview
+                              page={hit.page}
+                              className="w-14 shrink-0 rounded-md border border-rule"
+                            />
+                            <div className="min-w-0 flex-1 py-0.5">
+                              <p className="text-sm font-medium text-ink truncate">
+                                {hit.page.title || formatRelative(hit.page.date)}
+                              </p>
+                              <p className="text-sm text-ink-soft line-clamp-2 mt-0.5 leading-snug">
+                                <Highlight text={hit.snippet} query={query} />
+                              </p>
+                              <p className="text-xs text-ink-faint mt-1">
+                                {formatRelative(hit.page.date)}
+                                {hit.page.tags.length > 0 && <> &middot; #{hit.page.tags.join(' #')}</>}
+                              </p>
+                            </div>
+                          </Link>
+                        </motion.li>
+                      ))}
+                    </AnimatePresence>
                   </ul>
                 </section>
               ))}

@@ -4,6 +4,7 @@ import { useSettings, watchSystemTheme } from './store/settings'
 import { useLibrary } from './store/library'
 import { ToastHost } from './components/ui/Toast'
 import { AppNav } from './components/AppNav'
+import { DotMatrix } from './components/ui/DotMatrix'
 import { LockGate } from './components/lock/LockGate'
 import { LibraryScreen } from './components/library/LibraryScreen'
 import { JournalScreen } from './components/library/JournalScreen'
@@ -57,10 +58,16 @@ export default function App() {
 
   if (!ready || !hydrated) {
     return (
-      <div className="min-h-dvh grid place-items-center bg-page">
-        <div className="text-center animate-fade-up">
-          <h1 className="font-display text-3xl text-ink">Pagebound</h1>
-          <p className="text-ink-faint text-sm mt-1">Getting your pages…</p>
+      <div className="min-h-dvh grid place-items-center bg-chrome relative overflow-hidden">
+        <div className="absolute inset-0 opacity-60">
+          <DotMatrix variant="assemble" spacing={26} radius={1.5} color="rgb(96 140 255)" />
+        </div>
+        <div className="relative text-center animate-fade-up">
+          <p className="tech-label text-signal-glow mb-2">PAGEBOUND</p>
+          <h1 className="font-display text-3xl text-chrome-ink">Opening your shelf</h1>
+          <p className="text-chrome-ink/50 text-sm mt-1.5 font-mono">
+            loading<span className="animate-blink">…</span>
+          </p>
         </div>
       </div>
     )

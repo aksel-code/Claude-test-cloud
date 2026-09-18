@@ -5,6 +5,7 @@ import { getAllPages } from '@/lib/db'
 import { useLibrary } from '@/store/library'
 import { Icon } from '../ui/Icon'
 import { EmptyState } from '../ui/Controls'
+import { ScreenHeader } from '../ui/ScreenHeader'
 import { PagePreview } from '../library/PagePreview'
 import {
   describeGap, formatLong, formatRelative, monthDayKey, monthGrid, monthName, todayKey, yearOf,
@@ -60,8 +61,12 @@ export default function CalendarScreen() {
 
   return (
     <div className="max-w-3xl mx-auto px-4 sm:px-6 pt-6 md:pt-10">
-      <h1 className="font-display text-3xl text-ink mb-1">Calendar</h1>
-      <p className="text-ink-soft mb-7">Every day you wrote something.</p>
+      <ScreenHeader
+        eyebrow="PAGEBOUND — CALENDAR"
+        title="Calendar"
+        subtitle="Every day you wrote something."
+        meta={`${pages.length.toString().padStart(2, '0')} ENTRIES`}
+      />
 
       {memories.length > 0 && <OnThisDay pages={memories} />}
 

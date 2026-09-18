@@ -1,6 +1,3 @@
-import { motion } from 'motion/react'
-import { prefersReducedMotion } from '@/lib/motion'
-
 interface ScreenHeaderProps {
   /** Small mono label above the title, e.g. "PAGEBOUND · 04" */
   eyebrow: string
@@ -22,19 +19,12 @@ interface ScreenHeaderProps {
  * replacing it.
  */
 export function ScreenHeader({ eyebrow, title, subtitle, meta, children }: ScreenHeaderProps) {
-  const reduced = prefersReducedMotion()
-
   return (
     <header className="mb-7 md:mb-9">
       <div className="flex items-baseline justify-between gap-3 mb-2">
-        <motion.p
-          className="tech-label text-signal-deep dark:text-signal"
-          initial={reduced ? false : { opacity: 0, x: -6 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.32, ease: [0.2, 0.8, 0.3, 1] }}
-        >
+        <p className="tech-label text-signal-deep dark:text-signal animate-fade-up" style={{ animationDuration: '320ms' }}>
           {eyebrow}
-        </motion.p>
+        </p>
         {meta && <p className="tech-label text-ink-faint tabular-nums shrink-0">{meta}</p>}
       </div>
 

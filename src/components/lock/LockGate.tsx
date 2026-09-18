@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
 import { Icon } from '../ui/Icon'
+import { DotMatrix } from '../ui/DotMatrix'
 import {
   getLockConfig, isLockEnabled, lockAvailable, verifyBiometric, verifyPasscode,
 } from '@/lib/lock'
@@ -112,10 +113,12 @@ function LockScreen({ onUnlock }: { onUnlock: () => void }) {
   return (
     <div className="min-h-dvh grid place-items-center bg-page px-6">
       <div className="w-full max-w-xs text-center animate-fade-up">
-        <div className="w-16 h-16 mx-auto mb-5 rounded-2xl bg-sunk grid place-items-center text-ink-soft">
-          <Icon name="lock" size={28} />
+        <div className="w-16 h-16 mx-auto mb-5 rounded-2xl bg-chrome grid place-items-center text-signal-glow relative overflow-hidden">
+          <DotMatrix variant="assemble" spacing={9} radius={1} color="rgb(96 140 255)" />
+          <Icon name="lock" size={26} className="relative" />
         </div>
 
+        <p className="tech-label text-signal-deep dark:text-signal mb-1.5">ACCESS — RESTRICTED</p>
         <h1 className="font-display text-2xl text-ink mb-1">Pagebound</h1>
         <p className="text-ink-soft text-sm mb-7">Enter your passcode to open your journals.</p>
 

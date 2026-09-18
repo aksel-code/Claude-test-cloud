@@ -123,8 +123,8 @@ export default function ReaderScreen() {
             {current ? `${weekdayName(current.date)}, ${formatLong(current.date)}` : ''}
           </p>
         </div>
-        <span className="tap text-xs tabular-nums text-ink-faint">
-          {index + 1}/{pages.length}
+        <span className="tap tech-label text-ink-faint">
+          {String(index + 1).padStart(2, '0')}/{String(pages.length).padStart(2, '0')}
         </span>
       </header>
 

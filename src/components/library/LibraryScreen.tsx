@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useLibrary } from '@/store/library'
 import { Icon } from '../ui/Icon'
 import { EmptyState } from '../ui/Controls'
+import { DotMatrix } from '../ui/DotMatrix'
 import { JournalCover } from './JournalCover'
 import { PagePreview } from './PagePreview'
 import { StreakChip } from './StreakChip'
@@ -12,6 +13,12 @@ import { QuickCaptureSheet } from '../daily/QuickCaptureSheet'
 import { formatRelative } from '@/lib/date'
 import { describeElement } from '@/lib/elements'
 import type { Page } from '@/lib/types'
+
+function todayStamp(): string {
+  const d = new Date()
+  const pad = (n: number) => String(n).padStart(2, '0')
+  return `${d.getFullYear()}.${pad(d.getMonth() + 1)}.${pad(d.getDate())}`
+}
 
 export function LibraryScreen() {
   const journals = useLibrary((s) => s.journals)
@@ -23,30 +30,56 @@ export function LibraryScreen() {
   const active = useMemo(() => journals.filter((j) => !j.archived), [journals])
 
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 pt-6 md:pt-10">
-      <header className="flex items-start justify-between gap-4 mb-6">
-        <div>
-          <h1 className="font-display text-[2rem] md:text-4xl text-ink leading-none">Pagebound</h1>
-          <p className="text-ink-soft mt-1.5">Your shelf.</p>
+    <div>
+      {/* Hero: the fullest expression of the new "signal" chrome, since this
+          is the screen everyone lands on. Journal content below stays on the
+          warm palette — this band is the only place the two ever touch. */}
+      <div className="relative overflow-hidden signal-glow px-4 sm:px-6 pt-6 md:pt-10 pb-8">
+        <div className="absolute inset-0 opacity-50" aria-hidden="true">
+          <DotMatrix variant="ambient" spacing={24} radius={1.3} color="rgb(96 140 255)" />
         </div>
-        <div className="flex items-center gap-2 pt-1">
-          <StreakChip />
-        </div>
-      </header>
 
-      {/* Today + quick capture: the two things someone opens the app to do. */}
-      <div className="flex gap-2.5 mb-8">
-        <button type="button" onClick={() => setToday(true)} className="btn-primary flex-1 sm:flex-none">
-          <Icon name="plus" size={18} />
-          Today&rsquo;s page
-        </button>
-        <button type="button" onClick={() => setQuick(true)} className="btn-outline">
-          <Icon name="camera" size={18} />
-          <span className="hidden sm:inline">Quick capture</span>
-          <span className="sr-only sm:hidden">Quick capture</span>
-        </button>
+        <div className="relative max-w-5xl mx-auto">
+          <div className="flex items-center justify-between gap-4 mb-5">
+            <p className="tech-label text-chrome-ink/60">PRACTISE &mdash; SCRAPBOOK RECORD</p>
+            <p className="tech-label text-signal-glow tabular-nums">{todayStamp()}</p>
+          </div>
+
+          <header className="flex items-end justify-between gap-4 flex-wrap">
+            <div>
+              <h1 className="font-display text-[2.4rem] md:text-5xl text-chrome-ink leading-none animate-glitch-in">
+                Pagebound
+              </h1>
+              <p className="text-chrome-ink/60 mt-2">
+                {active.length > 0
+                  ? `${active.length} ${active.length === 1 ? 'journal' : 'journals'} on the shelf.`
+                  : 'Your shelf.'}
+              </p>
+            </div>
+            <StreakChip tone="onDark" />
+          </header>
+
+          {/* Today + quick capture: the two things someone opens the app to do. */}
+          <div className="flex gap-2.5 mt-6">
+            <button type="button" onClick={() => setToday(true)} className="btn-primary flex-1 sm:flex-none">
+              <Icon name="plus" size={18} />
+              Today&rsquo;s page
+            </button>
+            <button
+              type="button"
+              onClick={() => setQuick(true)}
+              className="btn tap gap-2 px-4 rounded-full font-medium text-sm border border-chrome-ink/25
+                text-chrome-ink hover:bg-chrome-ink/10 transition-colors"
+            >
+              <Icon name="camera" size={18} />
+              <span className="hidden sm:inline">Quick capture</span>
+              <span className="sr-only sm:hidden">Quick capture</span>
+            </button>
+          </div>
+        </div>
       </div>
 
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 pt-8 pb-10">
       {recent.length > 0 && <RecentStrip pages={recent} />}
 
       <section aria-labelledby="journals-heading" className="mt-10">
@@ -72,8 +105,12 @@ export function LibraryScreen() {
           />
         ) : (
           <ul className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-x-4 gap-y-7 sm:gap-x-6">
-            {active.map((journal) => (
-              <li key={journal.id} className="flex flex-col items-center">
+            {active.map((journal, index) => (
+              <li
+                key={journal.id}
+                className="flex flex-col items-center animate-fade-up"
+                style={{ animationDelay: `${Math.min(index, 8) * 35}ms` }}
+              >
                 <Link
                   to={`/journal/${journal.id}`}
                   className="group rounded-lg outline-offset-4 block
@@ -104,6 +141,7 @@ export function LibraryScreen() {
           </ul>
         )}
       </section>
+      </div>
 
       <NewJournalSheet open={newJournal} onClose={() => setNewJournal(false)} />
       <TodaySheet open={today} onClose={() => setToday(false)} />

@@ -4,7 +4,7 @@ import { Swatches } from '../ui/Controls'
 import { Icon } from '../ui/Icon'
 import { useEditor } from '@/store/editor'
 import {
-  searchStickers, stickerPacks, stickerSvg, type Sticker,
+  findSticker, searchStickers, stickerPacks, stickerSvg, type Sticker,
 } from '@/content/stickers'
 import { TAPES, tapeCss } from '@/content/tapes'
 import { NOTES } from '@/content/notes'
@@ -12,6 +12,7 @@ import { PAPERS, backgroundCss, paperSpec } from '@/content/papers'
 import { createNote, createShape, createSticker, createTape } from '@/lib/elements'
 import { INK_SWATCHES, PAPER_SWATCHES, PAGE_W, PAGE_H } from '@/lib/constants'
 import { haptic } from '@/lib/motion'
+import { rankByUsage, recordUsage, topUsageKeys } from '@/lib/usage'
 import type { BackgroundKind, ShapeKind } from '@/lib/types'
 
 /**
@@ -33,24 +34,41 @@ function dropPoint(index = 0) {
 
 /* --------------------------------------------------------------- stickers */
 
+const RECENT_STICKER_PREFIX = 'sticker:'
+
 export function StickerPicker({ open, onClose }: { open: boolean; onClose: () => void }) {
   const addElement = useEditor((s) => s.addElement)
   const [query, setQuery] = useState('')
   const [tint, setTint] = useState('#C8674A')
   const packs = stickerPacks()
-  const [packId, setPackId] = useState(packs[0]?.id ?? 'nature')
+
+  // Recent, on this device only: no network, no AI — just a tally of what got
+  // placed before, so the picker opens on what you actually reach for instead
+  // of always making you re-browse from pack one. Small list (<=12), so it's
+  // recomputed on every render rather than memoized against `open` — that's
+  // also what makes it pick up a placement immediately after it happens.
+  const recentStickers = topUsageKeys(RECENT_STICKER_PREFIX, 12)
+    .map((key) => {
+      const [, packId, stickerId] = key.split(':')
+      const sticker = findSticker(packId, stickerId)
+      return sticker ? { ...sticker, packId } : null
+    })
+    .filter((s): s is Sticker & { packId: string } => s !== null)
+  const [packId, setPackId] = useState(() => (recentStickers.length > 0 ? 'recent' : packs[0]?.id ?? 'nature'))
 
   const results = useMemo(() => {
     if (query.trim()) return searchStickers(query).map((r) => ({ ...r.sticker, packId: r.pack.id }))
+    if (packId === 'recent') return recentStickers
     const pack = packs.find((p) => p.id === packId) ?? packs[0]
     return pack ? pack.stickers.map((s) => ({ ...s, packId: pack.id })) : []
-  }, [query, packId, packs])
+  }, [query, packId, packs, recentStickers])
 
   function place(sticker: Sticker & { packId: string }) {
     addElement(createSticker(sticker.packId, sticker.id, {
       ...dropPoint(),
       tint: sticker.tintable ? tint : undefined,
     }))
+    recordUsage(`${RECENT_STICKER_PREFIX}${sticker.packId}:${sticker.id}`)
     haptic('place')
     onClose()
   }
@@ -74,6 +92,18 @@ export function StickerPicker({ open, onClose }: { open: boolean; onClose: () =>
 
         {!query.trim() && (
           <div role="tablist" aria-label="Sticker packs" className="flex gap-1.5 overflow-x-auto no-scrollbar pb-1">
+            {recentStickers.length > 0 && (
+              <button
+                role="tab"
+                type="button"
+                aria-selected={packId === 'recent'}
+                onClick={() => setPackId('recent')}
+                className={`tap shrink-0 px-3.5 rounded-full text-sm font-medium transition-colors
+                  ${packId === 'recent' ? 'bg-ink text-page' : 'bg-sunk text-ink-soft hover:text-ink'}`}
+              >
+                Recent
+              </button>
+            )}
             {packs.map((pack) => (
               <button
                 key={pack.id}
@@ -132,6 +162,8 @@ export function StickerPicker({ open, onClose }: { open: boolean; onClose: () =>
 export function TapePicker({ open, onClose }: { open: boolean; onClose: () => void }) {
   const addElement = useEditor((s) => s.addElement)
   const [color, setColor] = useState<string | null>(null)
+  // Most-reached-for tape first, on this device only — see lib/usage.ts.
+  const tapes = rankByUsage(TAPES, (t) => `tape:${t.id}`)
 
   return (
     <Sheet
@@ -141,12 +173,13 @@ export function TapePicker({ open, onClose }: { open: boolean; onClose: () => vo
       subtitle="Tape lands at an angle. Drag it over a photo corner."
     >
       <ul className="space-y-2.5 mb-5">
-        {TAPES.map((tape) => (
+        {tapes.map((tape) => (
           <li key={tape.id}>
             <button
               type="button"
               onClick={() => {
                 addElement(createTape(tape.id, { ...dropPoint(), color: color ?? tape.color }))
+                recordUsage(`tape:${tape.id}`)
                 haptic('place')
                 onClose()
               }}
@@ -187,16 +220,18 @@ export function TapePicker({ open, onClose }: { open: boolean; onClose: () => vo
 
 export function NotePicker({ open, onClose }: { open: boolean; onClose: () => void }) {
   const addElement = useEditor((s) => s.addElement)
+  const notes = rankByUsage(NOTES, (n) => `note:${n.id}`)
 
   return (
     <Sheet open={open} onClose={onClose} title="Notes" subtitle="Paper to write on. Double-tap to type.">
       <ul className="grid grid-cols-2 gap-3">
-        {NOTES.map((note) => (
+        {notes.map((note) => (
           <li key={note.id}>
             <button
               type="button"
               onClick={() => {
                 addElement(createNote(note.id, dropPoint()))
+                recordUsage(`note:${note.id}`)
                 haptic('place')
                 onClose()
               }}
@@ -230,6 +265,7 @@ const SHAPES: { id: ShapeKind; label: string }[] = [
 export function ShapePicker({ open, onClose }: { open: boolean; onClose: () => void }) {
   const addElement = useEditor((s) => s.addElement)
   const [color, setColor] = useState('#2B2A28')
+  const shapes = rankByUsage(SHAPES, (s) => `shape:${s.id}`)
 
   return (
     <Sheet open={open} onClose={onClose} title="Lines & shapes">
@@ -237,12 +273,13 @@ export function ShapePicker({ open, onClose }: { open: boolean; onClose: () => v
         <Swatches label="Ink" value={color} colors={INK_SWATCHES} onChange={setColor} allowCustom />
       </div>
       <ul className="grid grid-cols-3 gap-2.5">
-        {SHAPES.map((shape) => (
+        {shapes.map((shape) => (
           <li key={shape.id}>
             <button
               type="button"
               onClick={() => {
                 addElement(createShape(shape.id, { ...dropPoint(), color }))
+                recordUsage(`shape:${shape.id}`)
                 haptic('place')
                 onClose()
               }}

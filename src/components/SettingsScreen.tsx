@@ -4,6 +4,7 @@ import { useLibrary } from '@/store/library'
 import { useAsync } from '@/hooks'
 import { Icon } from './ui/Icon'
 import { Segmented, Toggle, Field } from './ui/Controls'
+import { ScreenHeader } from './ui/ScreenHeader'
 import { Confirm, Sheet } from './ui/Sheet'
 import { toast } from './ui/Toast'
 import { storageReport, wipeAll, type StorageReport } from '@/lib/db'
@@ -43,7 +44,7 @@ export default function SettingsScreen() {
 
   return (
     <div className="max-w-2xl mx-auto px-4 sm:px-6 pt-6 md:pt-10 pb-16">
-      <h1 className="font-display text-3xl text-ink mb-8">Settings</h1>
+      <ScreenHeader eyebrow="PAGEBOUND — SETTINGS" title="Settings" />
 
       <Section title="Look">
         <div className="flex items-center justify-between py-3 gap-4">

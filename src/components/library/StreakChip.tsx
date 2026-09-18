@@ -10,7 +10,7 @@ import { todayKey } from '@/lib/date'
  * streak, and there is no "don't lose it!" language anywhere. A day off is
  * simply a day off.
  */
-export function StreakChip() {
+export function StreakChip({ tone = 'default' }: { tone?: 'default' | 'onDark' }) {
   const streak = useSettings((s) => s.streak)
   const lastEntry = useSettings((s) => s.lastEntryDate)
   if (streak < 2) return null
@@ -19,15 +19,17 @@ export function StreakChip() {
 
   return (
     <span
-      className="inline-flex items-center gap-1.5 pl-2.5 pr-3 py-1.5 rounded-full
-        bg-mustard/20 text-mustard-deep text-sm font-medium"
+      className={`inline-flex items-center gap-1.5 pl-2.5 pr-3 py-1.5 rounded-full text-sm font-medium
+        ${tone === 'onDark' ? 'bg-mustard/25 text-mustard' : 'bg-mustard/20 text-mustard-deep'}`}
       title={wroteToday
         ? `${streak} days in a row, including today`
         : `${streak} days in a row`}
     >
       <Icon name="flame" size={16} />
       <span className="tabular-nums">{streak}</span>
-      <span className="text-ink-soft font-normal">day{streak === 1 ? '' : 's'}</span>
+      <span className={tone === 'onDark' ? 'font-normal opacity-75' : 'text-ink-soft font-normal'}>
+        day{streak === 1 ? '' : 's'}
+      </span>
     </span>
   )
 }

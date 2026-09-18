@@ -334,11 +334,18 @@ export default function EditorScreen() {
         )}
       </div>
 
-      {/* --------------------------------------------------- mobile chrome */}
+      {/* --------------------------------------------------- mobile chrome
+          Inspector is an overlay anchored above the toolbar (`bottom-full`),
+          not a flex sibling of the canvas: a fixed inline block here used to
+          shrink the canvas's flex-1 share by up to 38vh whenever something
+          was selected, which is the "modules block the page" complaint.
+          Floating it costs nothing in canvas space — it only covers the
+          bottom slice of the page itself, which is fine since that's not
+          where you're looking while adjusting the selected element's props. */}
       {!desktop && (
-        <div className="shrink-0">
+        <div className="shrink-0 relative">
           {selectedId && (
-            <div className="px-2 pb-1.5">
+            <div className="absolute inset-x-0 bottom-full px-2 pb-1.5">
               <Inspector onEditText={setEditingText} />
             </div>
           )}
