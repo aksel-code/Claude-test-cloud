@@ -32,6 +32,20 @@
 
   --pb-grain-opacity: 0.55;
   --pb-canvas-backdrop: 232 225 212;
+
+  /*
+   * Signal layer: the "experimental" accent used only by app chrome — the
+   * shell around the pages, never the pages themselves. Journal content stays
+   * on the warm content palette above; this is a second, cooler channel used
+   * for technical meta labels, the dot-matrix motifs and hero backdrops.
+   */
+  --pb-signal: 76 92 224;          /* electric indigo */
+  --pb-signal-deep: 52 62 168;
+  --pb-signal-glow: 96 140 255;    /* cold stop of the hero gradient */
+  --pb-signal-ember: 224 122 74;   /* warm stop — chrome meeting the paper's terracotta */
+  --pb-chrome: 20 21 28;           /* near-black chrome ground, hero sections only */
+  --pb-chrome-ink: 232 232 240;
+  --pb-dot-opacity: 0.5;
   color-scheme: light;
 }
 
@@ -57,6 +71,14 @@
 
   --pb-grain-opacity: 0.30;
   --pb-canvas-backdrop: 18 16 13;
+
+  --pb-signal: 124 138 255;
+  --pb-signal-deep: 96 112 240;
+  --pb-signal-glow: 140 170 255;
+  --pb-signal-ember: 232 150 105;
+  --pb-chrome: 10 10 14;
+  --pb-chrome-ink: 236 236 244;
+  --pb-dot-opacity: 0.4;
   color-scheme: dark;
 }
 
@@ -150,6 +172,36 @@
     position: absolute; width: 1px; height: 1px;
     padding: 0; margin: -1px; overflow: hidden;
     clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+  }
+
+  /*
+   * The "signal" layer — technical chrome, never used on journal content.
+   * A record-sleeve register: monospace, uppercase, wide tracking, tabular.
+   */
+  .tech-label {
+    @apply font-mono uppercase tracking-[0.16em] text-[11px] font-medium;
+  }
+
+  .chrome-surface {
+    background: rgb(var(--pb-chrome));
+    color: rgb(var(--pb-chrome-ink));
+  }
+
+  /* Cold-to-ember glow, the one place the app borrows the reference palette
+     wholesale. Used behind hero headers only. */
+  .signal-glow {
+    background:
+      radial-gradient(120% 140% at 12% -10%, rgb(var(--pb-signal-glow) / 0.55), transparent 55%),
+      radial-gradient(90% 120% at 108% 8%, rgb(var(--pb-signal-ember) / 0.35), transparent 60%),
+      rgb(var(--pb-chrome));
+  }
+
+  .tick {
+    @apply relative;
+  }
+  .tick::before {
+    content: '+';
+    @apply absolute -left-3 top-0 text-[10px] opacity-40 select-none;
   }
 }
 

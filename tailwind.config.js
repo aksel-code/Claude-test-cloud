@@ -23,10 +23,21 @@ export default {
         'dusty-deep': 'rgb(var(--pb-dusty-deep) / <alpha-value>)',
         mustard: 'rgb(var(--pb-mustard) / <alpha-value>)',
         'mustard-deep': 'rgb(var(--pb-mustard-deep) / <alpha-value>)',
+        // Signal: the experimental accent for app chrome (nav, headers,
+        // loading, transitions). Never used on journal content.
+        signal: 'rgb(var(--pb-signal) / <alpha-value>)',
+        'signal-deep': 'rgb(var(--pb-signal-deep) / <alpha-value>)',
+        'signal-glow': 'rgb(var(--pb-signal-glow) / <alpha-value>)',
+        'signal-ember': 'rgb(var(--pb-signal-ember) / <alpha-value>)',
+        chrome: 'rgb(var(--pb-chrome) / <alpha-value>)',
+        'chrome-ink': 'rgb(var(--pb-chrome-ink) / <alpha-value>)',
       },
       fontFamily: {
         display: ['Fraunces', 'Iowan Old Style', 'Georgia', 'serif'],
         sans: ['Inter', 'system-ui', '-apple-system', 'Segoe UI', 'sans-serif'],
+        // Technical/meta layer — system stack on purpose: the app makes a
+        // point of shipping zero third-party network requests for fonts.
+        mono: ['ui-monospace', 'SF Mono', 'Cascadia Code', 'Roboto Mono', '"DejaVu Sans Mono"', 'monospace'],
         caveat: ['Caveat', 'cursive'],
         patrick: ['"Patrick Hand"', 'cursive'],
         homemade: ['"Homemade Apple"', 'cursive'],
@@ -66,12 +77,31 @@ export default {
           to: { transform: 'translateY(0)' },
         },
         shimmer: { '100%': { transform: 'translateX(100%)' } },
+        'glitch-in': {
+          '0%': { opacity: '0', transform: 'translate3d(0,0,0)', clipPath: 'inset(0 0 100% 0)' },
+          '18%': { opacity: '1', transform: 'translate3d(-2px,0,0)', clipPath: 'inset(0 0 62% 0)' },
+          '32%': { transform: 'translate3d(2px,0,0)', clipPath: 'inset(0 0 38% 0)' },
+          '46%': { transform: 'translate3d(-1px,0,0)', clipPath: 'inset(0 0 14% 0)' },
+          '60%': { transform: 'translate3d(1px,0,0)', clipPath: 'inset(0 0 4% 0)' },
+          '100%': { opacity: '1', transform: 'translate3d(0,0,0)', clipPath: 'inset(0 0 0% 0)' },
+        },
+        'dot-pulse': {
+          '0%, 100%': { opacity: 'var(--pb-dot-opacity)' },
+          '50%': { opacity: '1' },
+        },
+        blink: {
+          '0%, 100%': { opacity: '1' },
+          '50%': { opacity: '0' },
+        },
       },
       animation: {
         'pop-in': 'pop-in 420ms cubic-bezier(0.22, 1.4, 0.36, 1) both',
         'stamp-in': 'stamp-in 380ms cubic-bezier(0.22, 1.4, 0.36, 1) both',
         'fade-up': 'fade-up 300ms cubic-bezier(0.2, 0.8, 0.3, 1) both',
         'sheet-up': 'sheet-up 300ms cubic-bezier(0.2, 0.8, 0.3, 1) both',
+        'glitch-in': 'glitch-in 640ms cubic-bezier(0.2, 0.8, 0.3, 1) both',
+        'dot-pulse': 'dot-pulse 2.4s ease-in-out infinite',
+        blink: 'blink 1.1s step-start infinite',
       },
     },
   },
