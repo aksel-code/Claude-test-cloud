@@ -5,6 +5,7 @@ import { useAsync } from '@/hooks'
 import { Icon } from '../ui/Icon'
 import { Confirm, Sheet } from '../ui/Sheet'
 import { EmptyState, Field, Swatches } from '../ui/Controls'
+import { PixelReveal } from '../ui/PixelReveal'
 import { toast } from '../ui/Toast'
 import { JournalCover } from './JournalCover'
 import { PagePreview } from './PagePreview'
@@ -50,6 +51,8 @@ export function JournalScreen() {
 
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 pt-4 md:pt-8">
+      <PixelReveal key={journal.id} color={`${journal.color}dd`} />
+
       <Link to="/" className="btn-ghost -ml-3 mb-3">
         <Icon name="chevronLeft" size={18} />
         Library

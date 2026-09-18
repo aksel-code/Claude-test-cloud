@@ -93,6 +93,28 @@ export default {
           '0%, 100%': { opacity: '1' },
           '50%': { opacity: '0' },
         },
+        // Chromatic-aberration convergence: two colour ghosts fly in from
+        // opposite offsets and fade out as they land on the true text,
+        // echoing the blue/ember split in the reference moodboard. One-shot,
+        // not infinite — a permanently glitching wordmark is a liability,
+        // not a flourish.
+        'rgb-split-a': {
+          '0%': { transform: 'translate3d(-7px, 2px, 0)', opacity: '0.85' },
+          '70%': { transform: 'translate3d(-2px, 1px, 0)', opacity: '0.5' },
+          '100%': { transform: 'translate3d(0, 0, 0)', opacity: '0' },
+        },
+        'rgb-split-b': {
+          '0%': { transform: 'translate3d(7px, -2px, 0)', opacity: '0.85' },
+          '70%': { transform: 'translate3d(2px, -1px, 0)', opacity: '0.5' },
+          '100%': { transform: 'translate3d(0, 0, 0)', opacity: '0' },
+        },
+        // One pixel-reveal cell: solid, then shrinks away to nothing. Staggered
+        // per-cell delays (set inline, not here) turn this into a mosaic wipe.
+        'pixel-out': {
+          '0%': { transform: 'scale(1)', opacity: '1' },
+          '60%': { transform: 'scale(1)', opacity: '1' },
+          '100%': { transform: 'scale(0)', opacity: '0' },
+        },
       },
       animation: {
         'pop-in': 'pop-in 420ms cubic-bezier(0.22, 1.4, 0.36, 1) both',
@@ -102,6 +124,8 @@ export default {
         'glitch-in': 'glitch-in 640ms cubic-bezier(0.2, 0.8, 0.3, 1) both',
         'dot-pulse': 'dot-pulse 2.4s ease-in-out infinite',
         blink: 'blink 1.1s step-start infinite',
+        'rgb-split-a': 'rgb-split-a 700ms cubic-bezier(0.2, 0.8, 0.3, 1) both',
+        'rgb-split-b': 'rgb-split-b 700ms cubic-bezier(0.2, 0.8, 0.3, 1) both',
       },
     },
   },

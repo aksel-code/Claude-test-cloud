@@ -3,8 +3,15 @@ import { prefersReducedMotion, springEase } from '@/lib/motion'
 
 interface DotMatrixProps {
   className?: string
-  /** 'assemble' animates once on mount; 'ambient' drifts forever, very slowly. */
-  variant?: 'assemble' | 'ambient'
+  /**
+   * 'assemble' plays the scan-in once, then goes still.
+   * 'ambient' drifts forever, never assembling — for a texture that's always
+   * mid-scene (loading states, tiny badges).
+   * 'landing' plays the scan-in, THEN keeps breathing forever — the one to
+   * reach for anywhere someone actually lands and looks around, since
+   * 'assemble' alone goes still and reads as inert after a second.
+   */
+  variant?: 'assemble' | 'ambient' | 'landing'
   /** Spacing between dot centres, in CSS px at 1x. */
   spacing?: number
   /** Base dot radius, in CSS px at 1x. */
@@ -21,12 +28,10 @@ interface DotMatrixProps {
  * this app's new chrome borrows from is itself a generated pattern, not a
  * photo dissolve.
  *
- * 'assemble': every dot starts at a random offset and fades in from zero
- * radius; they settle into a grid with a per-dot delay driven by distance
- * from the top-left, so the field reads as scanning into place once, then
- * goes still. 'ambient': dots sit on the grid permanently and only their
- * radius breathes, on a slow per-dot phase offset — safe to leave running
- * behind text since nothing moves position.
+ * Tune `spacing`/`radius`/`opacity` deliberately bold where this is meant to
+ * read as a graphic element (hero bands) rather than a faint texture — the
+ * halftone dots in the reference art are a loud, legible pattern, not
+ * background noise.
  *
  * Respects prefers-reduced-motion by rendering the settled frame directly,
  * matching the convention in lib/motion.ts used everywhere else.
@@ -48,6 +53,10 @@ export function DotMatrix({
     if (!ctx) return
 
     const reduced = prefersReducedMotion()
+    const assembles = variant === 'assemble' || variant === 'landing'
+    const ambientAfter = variant === 'ambient' || variant === 'landing'
+    const ASSEMBLE_MS = 900
+
     let raf = 0
     let width = 0
     let height = 0
@@ -90,16 +99,18 @@ export function DotMatrix({
       ctx!.clearRect(0, 0, width, height)
       ctx!.fillStyle = resolvedColor
 
+      const assembling = assembles && !reduced && t < ASSEMBLE_MS + 500
+
       for (const dot of dots) {
         let r: number
         let a: number
 
-        if (variant === 'assemble' && !reduced) {
-          const local = Math.max(0, Math.min(1, (t - dot.delay * 500) / 500))
+        if (assembling) {
+          const local = Math.max(0, Math.min(1, (t - dot.delay * 400) / ASSEMBLE_MS))
           const eased = springEase(local)
           r = radius * eased
           a = eased
-        } else if (variant === 'ambient' && !reduced) {
+        } else if (ambientAfter && !reduced) {
           const phase = (t / 2600) + dot.seed * Math.PI * 2
           const wave = 0.55 + 0.45 * Math.sin(phase)
           r = radius * wave
@@ -120,24 +131,24 @@ export function DotMatrix({
 
     layout()
 
-    if (reduced || variant === 'assemble') {
-      paint(reduced ? 0 : 10_000)
-    }
-
-    if (!reduced && variant === 'ambient') {
-      const loop = (now: number) => { paint(now); raf = requestAnimationFrame(loop) }
-      raf = requestAnimationFrame(loop)
-    } else if (!reduced && variant === 'assemble') {
+    if (reduced) {
+      paint(0)
+    } else if (assembles) {
       const start = performance.now()
       const loop = (now: number) => {
         const elapsed = now - start
         paint(elapsed)
-        if (elapsed < 1400) raf = requestAnimationFrame(loop)
+        if (ambientAfter || elapsed < ASSEMBLE_MS + 500) raf = requestAnimationFrame(loop)
       }
       raf = requestAnimationFrame(loop)
+    } else if (ambientAfter) {
+      const loop = (now: number) => { paint(now); raf = requestAnimationFrame(loop) }
+      raf = requestAnimationFrame(loop)
+    } else {
+      paint(10_000)
     }
 
-    const ro = new ResizeObserver(() => { layout(); if (reduced || variant !== 'ambient') paint(reduced ? 0 : 10_000) })
+    const ro = new ResizeObserver(() => { layout(); if (reduced) paint(0) })
     ro.observe(canvas)
 
     return () => {

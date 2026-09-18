@@ -203,6 +203,35 @@
     content: '+';
     @apply absolute -left-3 top-0 text-[10px] opacity-40 select-none;
   }
+
+  /*
+   * Glitch wordmark: two colour ghosts (`content: attr(data-text)`) fly in
+   * from opposite offsets and converge on the real text underneath. Give the
+   * element `data-text="<same content>"` — pseudo-elements can't read text
+   * node content directly. `mix-blend-mode: screen` on a dark hero makes the
+   * overlap read as light, not muddy.
+   */
+  .glitch-text {
+    @apply relative inline-block;
+  }
+  .glitch-text::before,
+  .glitch-text::after {
+    content: attr(data-text);
+    @apply absolute inset-0 pointer-events-none;
+    mix-blend-mode: screen;
+  }
+  .glitch-text::before {
+    color: rgb(var(--pb-signal-glow));
+    animation: rgb-split-a 700ms cubic-bezier(0.2, 0.8, 0.3, 1) both;
+  }
+  .glitch-text::after {
+    color: rgb(var(--pb-signal-ember));
+    animation: rgb-split-b 700ms cubic-bezier(0.2, 0.8, 0.3, 1) both;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .glitch-text::before,
+    .glitch-text::after { display: none; }
+  }
 }
 
 @layer utilities {

@@ -34,23 +34,31 @@ export function LibraryScreen() {
       {/* Hero: the fullest expression of the new "signal" chrome, since this
           is the screen everyone lands on. Journal content below stays on the
           warm palette — this band is the only place the two ever touch. */}
-      <div className="relative overflow-hidden signal-glow px-4 sm:px-6 pt-6 md:pt-10 pb-8">
-        <div className="absolute inset-0 opacity-50" aria-hidden="true">
-          <DotMatrix variant="ambient" spacing={24} radius={1.3} color="rgb(96 140 255)" />
+      <div className="relative overflow-hidden signal-glow px-4 sm:px-6 pt-8 md:pt-14 pb-10 md:pb-12">
+        {/* Dense, high-contrast dot field: a graphic element in its own
+            right, not a faint background texture — it scans into place
+            fresh every time this screen mounts, then keeps a slow ambient
+            breathing life rather than going still. */}
+        <div className="absolute inset-0" aria-hidden="true">
+          <DotMatrix variant="landing" spacing={14} radius={2.4} opacity={0.85} color="rgb(120 155 255)" />
         </div>
 
         <div className="relative max-w-5xl mx-auto">
-          <div className="flex items-center justify-between gap-4 mb-5">
-            <p className="tech-label text-chrome-ink/60">PRACTISE &mdash; SCRAPBOOK RECORD</p>
+          <div className="flex items-center justify-between gap-4 mb-6">
+            <p className="tech-label text-chrome-ink/70">PRACTISE &mdash; SCRAPBOOK RECORD</p>
             <p className="tech-label text-signal-glow tabular-nums">{todayStamp()}</p>
           </div>
 
           <header className="flex items-end justify-between gap-4 flex-wrap">
             <div>
-              <h1 className="font-display text-[2.4rem] md:text-5xl text-chrome-ink leading-none animate-glitch-in">
+              <h1
+                data-text="Pagebound"
+                className="glitch-text font-display font-semibold text-[3.1rem] leading-[0.92]
+                  tracking-tight md:text-7xl text-chrome-ink animate-glitch-in"
+              >
                 Pagebound
               </h1>
-              <p className="text-chrome-ink/60 mt-2">
+              <p className="text-chrome-ink/70 mt-3 text-base">
                 {active.length > 0
                   ? `${active.length} ${active.length === 1 ? 'journal' : 'journals'} on the shelf.`
                   : 'Your shelf.'}
